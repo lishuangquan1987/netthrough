@@ -33,17 +33,41 @@ func (t *TaskInfo) Start() {
 			fmt.Printf("[outside connect]:%s\n", conn.RemoteAddr().String())
 			//client socket不能关闭
 			//接收外部的数据，转发到客户端
-			go transferDataToClient(t, conn)
+			//go transferDataToClient(t, conn)
 			//接受客户端的数据，转发到外部
-			go transferDataToOutside(t, conn)
+			//go transferDataToOutside(t, conn)
+			go transferData(t, conn)
 		}
 	}()
 
 }
 
+func transferData(t *TaskInfo, con net.Conn) {
+	//从外部接受数据
+	var buffer = make([]byte, 100000)
+	defer con.Close()
+	n, err := con.Read(buffer)
+	if err != nil {
+		return
+	}
+	fmt.Printf("<transferData> received %d bytes from [%s]\n ", n, con.RemoteAddr())
+	//写入到客户端
+	n, err = t.ClientSocket.Write(buffer[:n])
+	if err != nil {
+		return
+	}
+	//从客户端读取内容
+	n, err = t.ClientSocket.Read(buffer)
+	if err != nil {
+		return
+	}
+	//写入到外部
+	n, err = con.Write(buffer[:n])
+}
+
 //数据从外部的请求写入到客户端
 func transferDataToClient(t *TaskInfo, con net.Conn) {
-	var buffer = make([]byte, 100000)
+
 	for {
 		if t.isRequestStop {
 			t.IsRuning = false
@@ -52,7 +76,7 @@ func transferDataToClient(t *TaskInfo, con net.Conn) {
 		n, err := con.Read(buffer)
 		if err != nil {
 			con.Close()
-			fmt.Printf("[outside disconnect]")
+			fmt.Printf("[outside disconnect]\n", con.RemoteAddr().String())
 			//出错了，关闭Socket
 			t.IsRuning = false
 			break
@@ -82,7 +106,7 @@ func transferDataToOutside(t *TaskInfo, con net.Conn) {
 		fmt.Printf("<transferDataToOutside> received %d bytes from [%s]\n ", n, t.ClientSocket.RemoteAddr())
 		_, err = con.Write(buffer[:n])
 		if err != nil {
-			fmt.Printf("[outside disconnect]")
+			fmt.Printf("[outside disconnect]:%s\n", con.RemoteAddr().String())
 			t.IsRuning = false
 			con.Close()
 			break

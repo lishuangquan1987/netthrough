@@ -43,7 +43,7 @@ func main() {
 		return
 	}
 	//处理端口转发
-	fmt.Printf("%s<->%s:%d", config.Config.SourceAddr, config.Config.ServerIp, config.Config.ServerPort)
+	fmt.Printf("%s<->%s:%d\n", config.Config.SourceAddr, config.Config.ServerIp, config.Config.ServerPort)
 	go utils.HandleConnection(servercon, sourcecon)
 	go utils.HandleConnection(sourcecon, servercon)
 	//阻塞程序

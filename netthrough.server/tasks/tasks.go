@@ -30,6 +30,7 @@ func (t *TaskInfo) Start() {
 				t.IsRuning = false
 				break
 			}
+			fmt.Printf("[outside connect]:%s\n", conn.RemoteAddr().String())
 			//client socket不能关闭
 			//接收外部的数据，转发到客户端
 			go transferDataToClient(t, conn)
@@ -51,6 +52,7 @@ func transferDataToClient(t *TaskInfo, con net.Conn) {
 		n, err := con.Read(buffer)
 		if err != nil {
 			con.Close()
+			fmt.Printf("[outside disconnect]")
 			//出错了，关闭Socket
 			t.IsRuning = false
 			break
@@ -80,6 +82,7 @@ func transferDataToOutside(t *TaskInfo, con net.Conn) {
 		fmt.Printf("<transferDataToOutside> received %d bytes from [%s]\n ", n, t.ClientSocket.RemoteAddr())
 		_, err = con.Write(buffer[:n])
 		if err != nil {
+			fmt.Printf("[outside disconnect]")
 			t.IsRuning = false
 			con.Close()
 			break

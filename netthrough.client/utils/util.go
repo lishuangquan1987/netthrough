@@ -1,6 +1,9 @@
 package utils
 
-import "net"
+import (
+	"fmt"
+	"net"
+)
 
 func HandleConnection(r, w net.Conn) {
 	defer r.Close()
@@ -12,7 +15,7 @@ func HandleConnection(r, w net.Conn) {
 		if err != nil {
 			break
 		}
-
+		fmt.Printf("received %d bytes from [%s].", n, r.LocalAddr().String())
 		n, err = w.Write(buffer[:n])
 		if err != nil {
 			break

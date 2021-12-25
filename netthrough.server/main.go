@@ -23,7 +23,7 @@ var requestChan chan []byte
 var responseChan chan []byte
 
 func main() {
-	clientSockets = make([]net.Conn, 5)
+	clientSockets = make([]net.Conn, 0)
 	requestChan = make(chan []byte)
 	responseChan = make(chan []byte)
 	//监听10000端口供外部访问
@@ -82,15 +82,19 @@ func Register(c *gin.Context) {
 	}
 	//根据客户端请求：1.监听服务端端口,接收外部请求。2.储存客户端连接的Socket,将外部请求内容转发到这个socket
 	//3.持续接收客户端连接的Socket,将信息转发给外部端口的Socket
-	var clientSocket net.Conn = nil
+	var clientSocket net.Conn
+	var hasClient bool
 	var addr string = fmt.Sprintf("%s:%d", c.ClientIP(), request.ClientSocketPort)
+	fmt.Printf("clientSockets lenth:%d", len(clientSockets))
 	for _, client := range clientSockets {
 		if client.RemoteAddr().String() == addr {
 			clientSocket = client
+			hasClient = true
+			break
 		}
 	}
 
-	if clientSocket == nil {
+	if !hasClient {
 		c.JSON(200, models.RegisterResponse{
 			IsSuccess: false,
 			ErrMsg:    fmt.Sprintf("客户端:%s未与服务器连接", addr),

@@ -21,5 +21,5 @@ func HandleConnection(r, w net.Conn) {
 			break
 		}
 	}
-
+	fmt.Println("server conn close")
 }

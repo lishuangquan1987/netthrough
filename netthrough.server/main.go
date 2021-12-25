@@ -114,6 +114,8 @@ func Register(c *gin.Context) {
 	task := &tasks.TaskInfo{
 		ClientSocket:    clientSocket,
 		RequestListener: listener,
+		RequestChan:     make(chan []byte),
+		ResponseChan:    make(chan []byte),
 	}
 	tasks.AddTask(task)
 	task.Start()

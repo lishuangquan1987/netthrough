@@ -12,16 +12,37 @@ func init() {
 }
 
 type TaskInfo struct {
-	ClientSocket    net.Conn
+	//客户端连接的Socket
+	ClientSocket net.Conn
+	//服务端连接的Socket,用于读取和写入外部请求，每次请求都会变化
+	serverSocket    net.Conn
 	RequestListener net.Listener
-	IsRuning        bool
-	isRequestStop   bool
+	//外部请求发过来的数据放在这里
+	RequestChan chan []byte
+	//从客户端发送过来的数据放在这里
+	ResponseChan  chan []byte
+	IsRuning      bool
+	isRequestStop bool
 }
 
 //待优化：Read的时候阻塞了，如何Stop掉
 func (t *TaskInfo) Start() {
 	t.IsRuning = true
 	t.isRequestStop = false
+
+	go func(t *TaskInfo) {
+		for {
+			if t.isRequestStop {
+				break
+			}
+			select {
+			case buffer := <-t.RequestChan:
+				t.ClientSocket.Write(buffer)
+			case buffer := <-t.ResponseChan:
+				t.serverSocket.Write(buffer)
+			}
+		}
+	}(t)
 
 	go func() {
 		for {
@@ -31,43 +52,33 @@ func (t *TaskInfo) Start() {
 				break
 			}
 			fmt.Printf("[outside connect]:%s\n", conn.RemoteAddr().String())
+			t.serverSocket = conn
 			//client socket不能关闭
 			//接收外部的数据，转发到客户端
 			//go transferDataToClient(t, conn)
 			//接受客户端的数据，转发到外部
 			//go transferDataToOutside(t, conn)
-			go transferData(t, conn)
+
 		}
 	}()
 
 }
 
-func transferData(t *TaskInfo, con net.Conn) {
-	//从外部接受数据
-	var buffer = make([]byte, 100000)
-	defer con.Close()
-	n, err := con.Read(buffer)
-	if err != nil {
-		return
+func readDataFromOutside(t *TaskInfo, conn net.Conn) {
+	defer conn.Close()
+	buffer := make([]byte, 100000)
+	for {
+		n, err := conn.Read(buffer)
+		if err != nil {
+			break
+		}
+		t.RequestChan <- buffer[:n] //放到channel里
 	}
-	fmt.Printf("<transferData> received %d bytes from [%s]\n ", n, con.RemoteAddr())
-	//写入到客户端
-	n, err = t.ClientSocket.Write(buffer[:n])
-	if err != nil {
-		return
-	}
-	//从客户端读取内容
-	n, err = t.ClientSocket.Read(buffer)
-	if err != nil {
-		return
-	}
-	//写入到外部
-	n, err = con.Write(buffer[:n])
 }
 
 //数据从外部的请求写入到客户端
 func transferDataToClient(t *TaskInfo, con net.Conn) {
-
+	var buffer = make([]byte, 100000)
 	for {
 		if t.isRequestStop {
 			t.IsRuning = false

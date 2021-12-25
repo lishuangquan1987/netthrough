@@ -11,14 +11,14 @@ import (
 func Get(url string) (string, error) {
 	rsp, err := http.Get(url)
 	if err != nil {
-		fmt.Printf("fail to request:%s,reason:%v", url, err)
+		fmt.Printf("fail to request:%s,reason:%v\n", url, err)
 		return "", err
 	}
 	defer rsp.Body.Close()
 
 	body, err := ioutil.ReadAll(rsp.Body)
 	if err != nil {
-		fmt.Printf("read body error,url:%s,reason:%v", url, err)
+		fmt.Printf("read body error,url:%s,reason:%v\n", url, err)
 		return "", err
 	}
 	return string(body), nil
@@ -27,14 +27,14 @@ func Get(url string) (string, error) {
 func GetObj(url string, obj interface{}) error {
 	rsp, err := http.Get(url)
 	if err != nil {
-		fmt.Printf("fail to request:%s,reason:%v", url, err)
+		fmt.Printf("fail to request:%s,reason:%v\n", url, err)
 		return err
 	}
 	defer rsp.Body.Close()
 
 	body, err := ioutil.ReadAll(rsp.Body)
 	if err != nil {
-		fmt.Printf("read body error,url:%s,reason:%v", url, err)
+		fmt.Printf("read body error,url:%s,reason:%v\n", url, err)
 		return err
 	}
 
@@ -46,7 +46,7 @@ func Post(url string, data interface{}) (string, error) {
 	if data != nil {
 		bytes, err := json.Marshal(data)
 		if err != nil {
-			fmt.Printf("convert to json fail.url:%s", url)
+			fmt.Printf("convert to json fail.url:%s\n", url)
 			return "", err
 		}
 		requstBytes = bytes
@@ -60,13 +60,13 @@ func Post(url string, data interface{}) (string, error) {
 	}
 
 	if err != nil {
-		fmt.Printf("fail to request url:%s,reason:%v", url, err)
+		fmt.Printf("fail to request url:%s,reason:%v\n", url, err)
 		return "", err
 	}
 	defer rsp.Body.Close()
 	responseBytes, err := ioutil.ReadAll(rsp.Body)
 	if err != nil {
-		fmt.Printf("read body error,url%s,reason:%v", url, err)
+		fmt.Printf("read body error,url%s,reason:%v\n", url, err)
 		return "", err
 	}
 	return string(responseBytes), nil
@@ -76,7 +76,7 @@ func PostObj(url string, data interface{}, obj interface{}) error {
 	if data != nil {
 		bytes, err := json.Marshal(data)
 		if err != nil {
-			fmt.Printf("convert to json fail.url:%s", url)
+			fmt.Printf("convert to json fail.url:%s\n", url)
 			return err
 		}
 		requstBytes = bytes
@@ -90,14 +90,14 @@ func PostObj(url string, data interface{}, obj interface{}) error {
 	}
 
 	if err != nil {
-		fmt.Printf("fail to request url:%s,reason:%v", url, err)
+		fmt.Printf("fail to request url:%s,reason:%v\n", url, err)
 		return err
 	}
 	defer rsp.Body.Close()
 	responseBytes, err := ioutil.ReadAll(rsp.Body)
-	fmt.Printf("PostObj Receive bytes:%d", len(responseBytes))
+	fmt.Printf("PostObj Receive bytes:%d\n", len(responseBytes))
 	if err != nil {
-		fmt.Printf("read body error,url%s,reason:%v", url, err)
+		fmt.Printf("read body error,url%s,reason:%v\n", url, err)
 		return err
 	}
 	return json.Unmarshal(responseBytes, obj)

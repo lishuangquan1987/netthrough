@@ -15,8 +15,8 @@ func HandleConnection(r, w net.Conn) {
 		if err != nil {
 			break
 		}
-		fmt.Printf("received %d bytes from [%s].", n, r.LocalAddr().String())
-		n, err = w.Write(buffer[:n])
+		fmt.Printf("received %d bytes from [%s].\n", n, r.LocalAddr().String())
+		_, err = w.Write(buffer[:n])
 		if err != nil {
 			break
 		}

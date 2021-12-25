@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"fmt"
 	"net"
 )
 
@@ -54,6 +55,7 @@ func transferDataToClient(t *TaskInfo, con net.Conn) {
 			t.IsRuning = false
 			break
 		}
+		fmt.Printf("<transferDataToClient> received %d bytes from [%s]\n ", n, con.RemoteAddr())
 		_, err = t.ClientSocket.Write(buffer[:n])
 		if err != nil {
 			t.IsRuning = false
@@ -75,6 +77,7 @@ func transferDataToOutside(t *TaskInfo, con net.Conn) {
 			t.IsRuning = false
 			break
 		}
+		fmt.Printf("<transferDataToOutside> received %d bytes from [%s]\n ", n, t.ClientSocket.RemoteAddr())
 		_, err = con.Write(buffer[:n])
 		if err != nil {
 			t.IsRuning = false

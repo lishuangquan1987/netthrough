@@ -51,14 +51,14 @@ func main() {
 	//监听5000端口，供客户端去连接通讯
 	clientListener, err := net.Listen("tcp", "0.0.0.0:5000")
 	if err != nil {
-		fmt.Printf("fail to listen 0.0.0.0:5000, reason :%s", err.Error())
+		fmt.Printf("fail to listen 0.0.0.0:5000, reason :%s\n", err.Error())
 		return
 	}
 	go func(l net.Listener) {
 		for {
 			con, err := l.Accept()
 			if err != nil {
-				fmt.Printf("fail to accept client socket, reason :%s", err.Error())
+				fmt.Printf("fail to accept client socket, reason :%s\n", err.Error())
 			} else {
 				fmt.Printf("client[%s] connected", con.RemoteAddr().String())
 				clientSockets = append(clientSockets, con)
@@ -110,7 +110,7 @@ func Register(c *gin.Context) {
 			ErrMsg:    fmt.Sprintf("服务器监听%d端口失败，原因:%s", request.ServerListenPort, err.Error()),
 		})
 	}
-	fmt.Printf("建立任务：%s->0.0.0.0:%d", clientIp, request.ServerListenPort)
+	fmt.Printf("建立任务：%s->0.0.0.0:%d\n", clientIp, request.ServerListenPort)
 	task := &tasks.TaskInfo{
 		ClientSocket:    clientSocket,
 		RequestListener: listener,

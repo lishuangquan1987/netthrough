@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net"
+	"strings"
 
 	"netthrough.server/models"
 	"netthrough.server/tasks"
@@ -76,7 +77,7 @@ func Register(c *gin.Context) {
 	if err := c.ShouldBind(&request); err != nil {
 		c.JSON(200, models.RegisterResponse{
 			IsSuccess: false,
-			ErrMsg:    "请求参数错误，请确认包含ClientSocketPort和ServerListenPort字段",
+			ErrMsg:    "parameter error,please ensure contains fields:ClientSocketPort and ServerListenPort",
 		})
 		return
 	}
@@ -84,10 +85,10 @@ func Register(c *gin.Context) {
 	//3.持续接收客户端连接的Socket,将信息转发给外部端口的Socket
 	var clientSocket net.Conn
 	var hasClient bool
-	var addr string = fmt.Sprintf("%s:%d", c.ClientIP(), request.ClientSocketPort)
-	fmt.Printf("clientSockets lenth:%d", len(clientSockets))
+	var clientIp string = c.ClientIP()
+	fmt.Printf("clientSockets lenth:%d\n", len(clientSockets))
 	for _, client := range clientSockets {
-		if client.RemoteAddr().String() == addr {
+		if strings.Split(client.RemoteAddr().String(), ":")[0] == clientIp {
 			clientSocket = client
 			hasClient = true
 			break
@@ -97,7 +98,7 @@ func Register(c *gin.Context) {
 	if !hasClient {
 		c.JSON(200, models.RegisterResponse{
 			IsSuccess: false,
-			ErrMsg:    fmt.Sprintf("客户端:%s未与服务器连接", addr),
+			ErrMsg:    fmt.Sprintf("客户端:%s未与服务器连接", clientIp),
 		})
 		return
 	}
@@ -109,7 +110,7 @@ func Register(c *gin.Context) {
 			ErrMsg:    fmt.Sprintf("服务器监听%d端口失败，原因:%s", request.ServerListenPort, err.Error()),
 		})
 	}
-	fmt.Printf("建立任务：%s->0.0.0.0:%d", addr, request.ServerListenPort)
+	fmt.Printf("建立任务：%s->0.0.0.0:%d", clientIp, request.ServerListenPort)
 	task := &tasks.TaskInfo{
 		ClientSocket:    clientSocket,
 		RequestListener: listener,

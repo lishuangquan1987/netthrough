@@ -28,6 +28,7 @@ func main() {
 	}
 	//2.向服务器注册Socket的远程端口
 	clientPort, _ := strconv.ParseInt(strings.Split(servercon.LocalAddr().String(), ":")[1], 10, 64)
+	fmt.Printf("与服务器建立的连接的本地地址：%s,远程地址：%s\n", servercon.LocalAddr(), servercon.RemoteAddr())
 	response := models.RegisterResponse{}
 	err = httphelper.PostObj(fmt.Sprintf("http://%s:5001/register", config.Config.ServerIp), models.RegisterRequest{
 		ClientSocketPort: int(clientPort),

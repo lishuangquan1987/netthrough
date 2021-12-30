@@ -8,18 +8,16 @@ type RegisterRequest struct {
 type StatusCheckRequest struct {
 	ClientId string
 }
-type ReadDataRequest struct{
-	ClientId string
+type ReadDataRequest struct {
+	ClientId  string
 	SessionId string
 }
-type WriteDataRequest struct{
-	ClientId string
+type WriteDataRequest struct {
+	ClientId  string
 	SessionId string
-	Data []byte
+	Data      []byte
 }
 
-type UnRegisterRequest struct{
+type UnRegisterRequest struct {
 	ClientId string
-	IsSuccess string
-	ErrMsg string
 }

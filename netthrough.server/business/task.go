@@ -63,6 +63,7 @@ func readOutsideData(task *Task, con net.Conn, guid string) {
 		if err != nil {
 			break
 		}
+		fmt.Printf("readOutsideData:<-[%s],len:%d\n", con.RemoteAddr(), n)
 		//读取到外部请求的数据，生成一个RequestId
 		task.WriteBuffer[guid] <- bytes[:n]
 	}
@@ -73,10 +74,11 @@ func writeDataToOutside(task *Task, con net.Conn, guid string) {
 	for {
 		select {
 		case buffer := <-task.ReadBuffer[guid]:
-			_, err := con.Write(buffer)
+			n, err := con.Write(buffer)
 			if err != nil {
 				return
 			}
+			fmt.Printf("writeDataToOutside:->[%s],len:%d\n", con.RemoteAddr(), n)
 		}
 	}
 }

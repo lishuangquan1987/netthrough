@@ -20,7 +20,7 @@ func (t *Task) Start() error {
 	//连接端口
 	conn, err := net.Dial("tcp", config.Config.SourceAddr)
 	if err != nil {
-		fmt.Printf("fail to connect to %s,reason:%v", config.Config.SourceAddr, err)
+		fmt.Printf("fail to connect to %s,reason:%v\n", config.Config.SourceAddr, err)
 		return err
 	}
 	t.conn = conn
@@ -30,11 +30,11 @@ func (t *Task) Start() error {
 		ClientId:         t.ClientId,
 		ServerListenPort: config.Config.ServerPort,
 	}, &registerResponse); err != nil {
-		fmt.Printf("register server error,reason:%v", err)
+		fmt.Printf("register server error,reason:%v\n", err)
 		return err
 	}
 	if !registerResponse.IsSuccess {
-		fmt.Printf("register server fail,reason:%v", err)
+		fmt.Printf("register server fail,reason:%v\n", err)
 		return err
 	}
 	go t.process()
@@ -49,14 +49,14 @@ func (t *Task) process() {
 		if t.isStop {
 			return
 		}
-		time.Sleep(time.Microsecond * 20)
+		time.Sleep(time.Microsecond * 50)
 		//调用服务端StatusCheck接口,看有无数据
 		if err := httphelper.PostObj(fmt.Sprintf("http://%s:5001/statuscheck", config.Config.ServerIp), statusCheckRequest, &statusCheckResponse); err != nil {
-			fmt.Printf("status check error ,reason:%v", err)
+			fmt.Printf("status check error ,reason:%v\n", err)
 			continue
 		}
 		if !statusCheckResponse.IsSuccess {
-			fmt.Printf("status check fail ,reason:%s", statusCheckResponse.ErrMsg)
+			fmt.Printf("status check fail ,reason:%s\n", statusCheckResponse.ErrMsg)
 			continue
 		}
 		if !statusCheckResponse.HasData {
@@ -64,7 +64,7 @@ func (t *Task) process() {
 		}
 
 		for _, sessionId := range statusCheckResponse.SessionId {
-			fmt.Printf("had data from server,sessionid:%s", sessionId)
+			fmt.Printf("had data from server,sessionid:%s\n", sessionId)
 		}
 		//这里暂时先处理一个请求，并发的后面再考虑
 		readDataRequest := models.ReadDataRequest{
@@ -73,26 +73,26 @@ func (t *Task) process() {
 		}
 		var readDataResponse models.ReadDataResponse
 		if err := httphelper.PostObj(fmt.Sprintf("http://%s:5001/readdata", config.Config.ServerIp), readDataRequest, &readDataResponse); err != nil {
-			fmt.Printf("read data error ,reason:%v", err)
+			fmt.Printf("read data error ,reason:%v\n", err)
 			continue
 		}
-		if readDataResponse.IsSuccess {
-			fmt.Printf("read data fail ,reason:%s", readDataResponse.ErrMsg)
+		if !readDataResponse.IsSuccess {
+			fmt.Printf("read data fail ,reason:%s\n", readDataResponse.ErrMsg)
 			continue
 		}
 		if !readDataResponse.HasData || len(readDataResponse.Data) == 0 {
-			fmt.Printf("read data len is 0 ,reason:%s", readDataResponse.ErrMsg)
+			fmt.Printf("read data len is 0 ,reason:%s\n", readDataResponse.ErrMsg)
 			continue
 		}
 		//转发到socket
 		if _, err := t.conn.Write(readDataResponse.Data); err != nil {
-			fmt.Printf("write data to %s fail,reason:%v", t.conn.RemoteAddr(), err)
+			fmt.Printf("write data to %s fail,reason:%v\n", t.conn.RemoteAddr(), err)
 			continue
 		}
 		//暂时考虑的是，发送一次就读取一次
 		buffer := make([]byte, 1000000)
 		if n, err := t.conn.Read(buffer); err != nil {
-			fmt.Printf("read data from %s fail ,reason:%v", t.conn.RemoteAddr(), err)
+			fmt.Printf("read data from %s fail ,reason:%v\n", t.conn.RemoteAddr(), err)
 			continue
 		} else {
 			writeDataRequest := models.WriteDataRequest{
@@ -101,17 +101,24 @@ func (t *Task) process() {
 				Data:      buffer[:n],
 			}
 			var writeDataResponse models.WriteDataResponse
-			err = httphelper.PostObj(fmt.Sprintf("http://%s:5001/writedata", config.Config.ServerIp), writeDataRequest, &writeDataRequest)
+			err = httphelper.PostObj(fmt.Sprintf("http://%s:5001/writedata", config.Config.ServerIp), writeDataRequest, &writeDataResponse)
 			if err != nil {
-				fmt.Printf("error to writedata to server ,reason :%v", err)
+				fmt.Printf("error to writedata to server ,reason :%v\n", err)
 				continue
 			}
 			if !writeDataResponse.IsSuccess {
-				fmt.Printf("fail to writedata to server ,reason :%s", writeDataResponse.ErrMsg)
+				fmt.Printf("fail to writedata to server ,reason :%s\n", writeDataResponse.ErrMsg)
 				continue
 			}
-			fmt.Printf("write data to server ,data len:%d", n)
+			fmt.Printf("write data to server ,data len:%d\n", n)
 		}
 
 	}
+}
+func (t *Task) Stop() {
+	t.isStop = true
+	var response models.UnRegisterResponse
+	httphelper.PostObj(fmt.Sprintf("http://%s:5001/unregister", config.Config.ServerIp), models.UnRegisterRequest{
+		ClientId: t.ClientId,
+	}, &response)
 }

@@ -1,11 +1,15 @@
 package main
 
 import (
+	"io/ioutil"
+
 	"github.com/gin-gonic/gin"
 	"netthrough.server/controllers"
 )
 
 func main() {
+	gin.SetMode(gin.ReleaseMode)
+	gin.DefaultWriter = ioutil.Discard
 	r := gin.Default()
 	r.POST("/register", controllers.Register)
 	r.POST("/statuscheck", controllers.StatusCheck)

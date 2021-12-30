@@ -20,6 +20,4 @@ type WriteDataRequest struct{
 
 type UnRegisterRequest struct{
 	ClientId string
-	IsSuccess string
-	ErrMsg string
 }

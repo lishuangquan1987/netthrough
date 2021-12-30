@@ -1,14 +1,18 @@
 package main
 
 import (
-	"fmt"
-	"net"
-
-	"netthrough.client/config"
+	goutils "github.com/typa01/go-utils"
+	"netthrough.client/business"
 )
 
 func main() {
-	//连接配置的端口
-	
+	//生成客户端ID
+	guid := goutils.GUID()
+	task := &business.Task{
+		ClientId: guid,
+	}
+	defer task.Stop()
+	task.Start()
+	select {}
 
 }

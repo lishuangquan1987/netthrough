@@ -95,7 +95,7 @@ func PostObj(url string, data interface{}, obj interface{}) error {
 	}
 	defer rsp.Body.Close()
 	responseBytes, err := ioutil.ReadAll(rsp.Body)
-	fmt.Printf("PostObj Receive bytes:%d\n", len(responseBytes))
+	//fmt.Printf("PostObj Receive bytes:%d\n", len(responseBytes))
 	if err != nil {
 		fmt.Printf("read body error,url%s,reason:%v\n", url, err)
 		return err
